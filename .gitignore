@@ -1,2 +1,7 @@
 heroes/node_modules
 heroes/package-lock.json
+
+threats/node_modules
+threats/package-lock.json
+
+package-lock.json

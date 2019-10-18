@@ -204,3 +204,144 @@ In the main directory of your project, create following directory and file struc
 ./threats/threats.js
 ./threats/img/
 ```
+In the ./threats directory, initialize the project and install its dependencies with the following npm command line instructions:
+```
+npm init -y
+npm install express body-parser request
+```
+Don’t forget to include this project in source code control, if you’re using it.
+
+Place this JavaScript code in the ./threats/threats.js file:
+```
+const express = require('express');
+const path = require('path');
+const bodyParser = require('body-parser');
+const request = require('request');
+
+const port = process.argv.slice(2)[0];
+const app = express();
+
+app.use(bodyParser.json());
+
+const heroesService = 'http://localhost:8081';
+
+const threats = [
+  {
+      id: 1,
+      displayName: 'Pisa tower is about to collapse.',
+      necessaryPowers: ['flying'],
+      img: 'tower.jpg',
+      assignedHero: 0
+  },
+  {
+      id: 2,
+      displayName: 'Engineer is going to clean up server-room.',
+      necessaryPowers: ['teleporting'],
+      img: 'mess.jpg',
+      assignedHero: 0
+  },
+  {
+      id: 3,
+      displayName: 'John will not understand the joke',
+      necessaryPowers: ['clairvoyance'],
+      img: 'joke.jpg',
+      assignedHero: 0
+  }
+];
+
+app.get('/threats', (req, res) => {
+  console.log('Returning threats list');
+  res.send(threats);
+});
+
+app.post('/assignment', (req, res) => {
+  request.post({
+      headers: {'content-type': 'application/json'},
+      url: `${heroesService}/hero/${req.body.heroId}`,
+      body: `{
+          "busy": true
+      }`
+  }, (err, heroResponse, body) => {
+      if (!err) {
+          const threatId = parseInt(req.body.threatId);
+          const threat = threats.find(subject => subject.id === threatId);
+          threat.assignedHero = req.body.heroId;
+          res.status(202).send(threat);
+      } else {
+          res.status(400).send({problem: `Hero Service responded with issue ${err}`});
+      }
+  });
+});
+
+app.use('/img', express.static(path.join(__dirname,'img')));
+
+console.log(`Threats service listening on port ${port}`);
+app.listen(port);
+```
+You can download the pictures from the following links and place in the /threats/img directory:
+```
+o tower.jpg
+o mess.jpg
+o joke.jpg
+```
+
+Apart from the threats list, and basic methods like listing them, this service also has a POST method, /assignment, which attaches a hero to the given threat:
+```
+app.post('/assignment', (req, res) => {
+   request.post({
+       headers: {'content-type': 'application/json'},
+       url: `${heroesService}/hero/${req.body.heroId}`,
+       body: `{
+           "busy": true
+       }`
+   }, (err, heroResponse, body) => {
+       if (!err) {
+           const threat = threats.find(subject => subject.id === req.body.threatId);
+           threat.assignedHero = req.body.heroId;
+           res.status(202).send(threat);
+       } else {
+           res.status(400).send({problem: `Hero Service responded with issue ${err}`});
+       }
+   });
+});
+```
+
+Because the code implements inter-services communication, it needs to know the address of the heroes service, as shown below. If you changed the port on which the heroes service runs you’ll need to edit this line:
+
+```
+const heroesService = 'http://localhost:8081';
+```
+## Test the threats service
+If you’ve stopped the heroes service, or closed its terminal window, restart it.
+
+Open another terminal window and start the threats service by executing the following command line instruction:
+```
+node threats/threats.js 8082
+```
+
+In the same way you tested the heroes service, test the threats service by executing a web request using Postman, curl, PowerShell Invoke-WebRequest, or your browser. Note that this time it’s a POST request.
+
+o curl
+```
+curl -i --request POST --header "Content-Type: application/json" --data '{"heroId": 1, "threatId": 1}' localhost:8082/assignment
+```
+o Postman
+```
+method POST
+Content-Type: application/json
+data : {"heroId": 1, "threatId": 1}
+url : localhost:8082/assignment
+```
+
+In Postman the body of the response should look like this:
+```
+{
+    "id": 1,
+    "displayName": "Pisa tower is about to collapse.",
+    "necessaryPowers": [
+        "flying"
+    ],
+    "img": "tower.jpg",
+    "assignedHero": 1
+}
+```
