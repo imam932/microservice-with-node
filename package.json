@@ -1,0 +1,24 @@
+{
+  "name": "heroes",
+  "version": "1.0.0",
+  "description": "Learn Microservice With NodeJs",
+  "main": "heroes.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imam932/microservice-with-node.git"
+  },
+  "keywords": [],
+  "author": "Imam Nawawi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/imam932/microservice-with-node/issues"
+  },
+  "homepage": "https://github.com/imam932/microservice-with-node#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1"
+  }
+}
